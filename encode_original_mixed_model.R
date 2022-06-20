@@ -1,15 +1,20 @@
 
-source("~/Documents/main_files/AskExplain/lmform/Rscripts/lmform_heritability/0_explore/helper_functions.R")
+source("./helper_functions.R")
+devtools::install_github("AskExplain/gcode_R@beta_test_v2022.2")
 
-# devtools::document("~/Documents/main_files/AskExplain/generative_encoder/package/beta_test_v2022.2/gcode/")
-# devtools::install_local("~/Documents/main_files/AskExplain/generative_encoder/package/beta_test_v2022.2/gcode/",force=T)
-# library(coxme)
-# library(GMMAT)
-# library(gcode)
+library(GMMAT)
+library(gcode)
 
+# SNPs
 p = 300
+
+# Samples
 n = 1000
+
+# Mean Allele Frequency
 f = 0.5
+
+
 
 time_run_yes_encode <- c()
 theta_param_yes_encode <- c()
@@ -17,11 +22,16 @@ theta_param_yes_encode <- c()
 time_run_no_encode <- c()
 theta_param_no_encode <- c()
 
+
+# Heritability at 0.5
 for(h2 in c(0.5)){
   
+  # Number of permutations
   for (i in 1:100){
     print(i)
     set.seed(i+10*h2)
+    
+    # Create simulated data per permutation
     X.s = (replicate(p, rbinom(n, size = 2, p = f) )) #use d genotypes
     #tau^2 = var(lambda.s) = h2 / p
     lambda.s = array(rnorm(p, 0, sqrt( h2 / p)),c(p)) #d effects
@@ -29,15 +39,17 @@ for(h2 in c(0.5)){
     y = ( X.s %*% lambda.s + rnorm(n, 0, sqrt(1-h2) )) #scaling makes mean(y)=0 as our LMM ignores int#test individual SNPs and make a QQ-plot
     GRM <- X.s%*%t(X.s)/p
     
+    
+    # Run original mixed model
     main_cpu_time_no_encode <- system.time(glmmkin_no_encode <- david_glmmkin.ai(fit0 = glm(y~1), kins = list(GRM), k = 0, verbose = F, encode = F,tol=0.01, maxiter = 30))
-
+    
     theta_param_no_encode <- rbind(theta_param_no_encode,
                                    data.frame(iter=i,h2=h2,sigma_e=glmmkin_no_encode$theta[1],sigma_g=glmmkin_no_encode$theta[2])
     )
-
+    
     time_run_no_encode <- rbind(time_run_no_encode,c(i,h2,main_cpu_time_no_encode))
     
-    
+    # Run encoded mixed model
     run_encoded_lmm <- function(T){
       
       k <- 100
@@ -95,18 +107,18 @@ for(h2 in c(0.5)){
   
 }
 
-save.image("~/Documents/main_files/AskExplain/gcta_summaries/data/workflow/lmm/lmm_fast_accuracy_rerun.RData")
+# save.image("./reproducibility/lmm_fast_accuracy_rerun.RData")
 
 
 t.test(x = theta_param_yes_encode$sigma_g, mu = 0.5)
 t.test(x = theta_param_no_encode$sigma_g, mu = 0.5)
 t.test(x = time_run_yes_encode[,5], y = time_run_no_encode[,5])
 
-pdf("~/Documents/main_files/AskExplain/gcta_summaries/figures/encoded_vs_original_mixed_model.pdf",width = 8, height = 4)
+# pdf("./figures/encoded_vs_original_mixed_model.pdf",width = 8, height = 4)
 par(mfcol=c(1,2))
 boxplot(data.frame(Encode = theta_param_yes_encode[,4], Original = theta_param_no_encode[,4]),main="Heritability (h2)")
 boxplot(data.frame(Encode = time_run_yes_encode[,5], Original = time_run_no_encode[,5]), main="Runtime (seconds)")
-dev.off()
+# dev.off()
 
 
 
