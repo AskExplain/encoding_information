@@ -160,15 +160,18 @@ for(h2 in c(0.5)){
     print(
       list(
         
-        mean_yes = colMeans(theta_param_yes_encode),
+        mean_yes_100 = colMeans(theta_param_yes_100_encode),
+        mean_yes_300 = colMeans(theta_param_yes_300_encode),
         mean_no = colMeans(theta_param_no_encode),
         mean_HE = colMeans(theta_param_HE_encode),
         
-        var_yes = apply(theta_param_yes_encode,2,var),
+        var_yes_100 = apply(theta_param_yes_100_encode,2,var),
+        var_yes_300 = apply(theta_param_yes_300_encode,2,var),
         var_no = apply(theta_param_no_encode,2,var),
         var_HE = apply(theta_param_HE_encode,2,var),
         
-        time_yes = colMeans(time_run_yes_encode),
+        time_yes_100 = colMeans(time_run_yes_100_encode),
+        time_yes_300 = colMeans(time_run_yes_300_encode),
         time_no = colMeans(time_run_no_encode),
         time_HE = colMeans(time_run_HE_encode)
         
