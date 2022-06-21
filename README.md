@@ -8,6 +8,6 @@ This is for 100 permutation runs of a simulation with 1000 samples and 100 SNPs 
 ![alt text](https://raw.githubusercontent.com/AskExplain/encoding_information/alpha_test_v2022.1/figures/encoded_vs_original_mixed_model.png)
 
 
-Given information is being encoded, it is expected for there to be information loss leading to higher variability compared to the standard linear mixed model. However, due to reduced sample size via an encoding the runtime is faster - almost half the speed of the original mixed model according to the R package GMMAT. An encoding to a small sample size reduces the runtime compared to an encoding to larger sample size - yet has greater sampling variability.
+Given information is being encoded, it is expected for there to be information loss leading to higher variability compared to the standard linear mixed model. However, due to reduced sample size via an encoding the runtime is faster - almost half the speed of the original mixed model according to the R package GMMAT. An encoding to a small sample size reduces the runtime compared to an encoding to a larger sample size - yet the reduced sample size has greater sampling variability.
 
 Future experiments will involve mixture models with encoded features.
