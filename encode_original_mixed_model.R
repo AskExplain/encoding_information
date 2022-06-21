@@ -59,7 +59,7 @@ for(h2 in c(0.5)){
     
     
     
-    # Run original mixed model
+    # Run HE regression
     main_cpu_time_HE_encode <- system.time(glmmkin_HE_encode <- fitREHE(y=y,X=y-y+1,K=list(GRM)))
     
     theta_param_HE_encode <- rbind(theta_param_HE_encode,
