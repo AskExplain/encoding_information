@@ -141,6 +141,3 @@ par(mfcol=c(1,2))
 boxplot(data.frame(Encode = theta_param_yes_encode[,4], Original = theta_param_no_encode[,4], HE = theta_param_HE_encode[,4]),main="Heritability (h2)")
 boxplot(data.frame(Encode = time_run_yes_encode[,5], Original = time_run_no_encode[,5], HE = time_run_HE_encode[,5]), main="Runtime (seconds)")
 dev.off()
-
-
-
