@@ -1,11 +1,8 @@
 
-source("~/Documents/main_files/AskExplain/gcta_summaries/Rscripts/projection/3_analysis/helper_functions.R")
-# devtools::install_github("AskExplain/gcode_R@beta_test_v2022.2")
+source("./GMMAT_helper_functions.R")
+source("./HE_helper_functions.R")
 
-source("~/Documents/main_files/AskExplain/gcta_summaries/REHE-master/GENESIS_R/files_to_update_GENESIS_package/fitREHE.R")
-source("~/Documents/main_files/AskExplain/gcta_summaries/REHE-master/GENESIS_R/GENESIS/calcSQ.R")
-source("~/Documents/main_files/AskExplain/gcta_summaries/REHE-master/GENESIS_R/GENESIS/calcLQ.R")
-
+devtools::install_github("AskExplain/gcode_R@beta_test_v2022.2")
 
 library(quadprog)
 library(GMMAT)
@@ -22,11 +19,11 @@ f = 0.5
 
 
 
-# time_run_yes_encode <- c()
-# theta_param_yes_encode <- c()
-# 
-# time_run_no_encode <- c()
-# theta_param_no_encode <- c()
+time_run_yes_encode <- c()
+theta_param_yes_encode <- c()
+
+time_run_no_encode <- c()
+theta_param_no_encode <- c()
 
 time_run_HE_encode <- c()
 theta_param_HE_encode <- c()
@@ -50,13 +47,13 @@ for(h2 in c(0.5)){
     
     
     # Run original mixed model
-    # main_cpu_time_no_encode <- system.time(glmmkin_no_encode <- david_glmmkin.ai(fit0 = glm(y~1), kins = list(GRM), k = 0, verbose = F, encode = F,tol=0.01, maxiter = 30))
-    # 
-    # theta_param_no_encode <- rbind(theta_param_no_encode,
-    #                                data.frame(iter=i,h2=h2,sigma_e=glmmkin_no_encode$theta[1],sigma_g=glmmkin_no_encode$theta[2])
-    # )
-    # 
-    # time_run_no_encode <- rbind(time_run_no_encode,c(i,h2,main_cpu_time_no_encode))
+    main_cpu_time_no_encode <- system.time(glmmkin_no_encode <- david_glmmkin.ai(fit0 = glm(y~1), kins = list(GRM), k = 0, verbose = F, encode = F,tol=0.01, maxiter = 30))
+
+    theta_param_no_encode <- rbind(theta_param_no_encode,
+                                   data.frame(iter=i,h2=h2,sigma_e=glmmkin_no_encode$theta[1],sigma_g=glmmkin_no_encode$theta[2])
+    )
+
+    time_run_no_encode <- rbind(time_run_no_encode,c(i,h2,main_cpu_time_no_encode))
     
     
     
@@ -76,57 +73,57 @@ for(h2 in c(0.5)){
     
     
     # Run encoded mixed model
-    # run_encoded_lmm <- function(T){
-    #   
-    #   k <- 100
-    #   config <- gcode::extract_config(F)
-    #   config$init <- list(alpha="rnorm",beta="rnorm")
-    #   config$i_dim <- k
-    #   config$j_dim <- k
-    #   config$verbose <- F
-    #   config$tol <- 1e-5
-    #   config$max_iter <- 1000
-    #   config$n.cores <- 8
-    #   config$learn_rate <- 0.9
-    #   config$batch_size <- 50
-    #   
-    #   join <- gcode::extract_join_framework(F)
-    #   join$complete <- lapply(join$complete,function(X){c(1)})
-    #   join$covariance <- c(1)
-    #   
-    #   gcode.model <- gcode::gcode(data_list = list(GRM), config = config, join = join)
-    #   sample_encode <- gcode.model$main.parameters$alpha_sample[[1]]
-    #   
-    #   glmmkin_yes_encode <- david_glmmkin.ai(fit0 = glm(y~1), kins = list(GRM), k = k, verbose = F, encode = T, sample_encode = sample_encode, tol = 0.01, maxiter = 30)
-    #   
-    # }
-    # 
-    # main_cpu_time_yes_encode <- system.time(
-    #   
-    #   glmmkin_yes_encode <- run_encoded_lmm(T)
-    #   
-    # )
-    # 
-    # theta_param_yes_encode <- rbind(theta_param_yes_encode,
-    #                                 data.frame(iter=i,h2=h2,sigma_e=glmmkin_yes_encode$theta[1],sigma_g=glmmkin_yes_encode$theta[2])
-    # )
-    # 
-    # time_run_yes_encode <- rbind(time_run_yes_encode,c(i,h2,main_cpu_time_yes_encode))
+    run_encoded_lmm <- function(T){
+
+      k <- 100
+      config <- gcode::extract_config(F)
+      config$init <- list(alpha="rnorm",beta="rnorm")
+      config$i_dim <- k
+      config$j_dim <- k
+      config$verbose <- F
+      config$tol <- 1e-5
+      config$max_iter <- 1000
+      config$n.cores <- 8
+      config$learn_rate <- 0.9
+      config$batch_size <- 50
+
+      join <- gcode::extract_join_framework(F)
+      join$complete <- lapply(join$complete,function(X){c(1)})
+      join$covariance <- c(1)
+
+      gcode.model <- gcode::gcode(data_list = list(GRM), config = config, join = join)
+      sample_encode <- gcode.model$main.parameters$alpha_sample[[1]]
+
+      glmmkin_yes_encode <- david_glmmkin.ai(fit0 = glm(y~1), kins = list(GRM), k = k, verbose = F, encode = T, sample_encode = sample_encode, tol = 0.01, maxiter = 30)
+
+    }
+
+    main_cpu_time_yes_encode <- system.time(
+
+      glmmkin_yes_encode <- run_encoded_lmm(T)
+
+    )
+
+    theta_param_yes_encode <- rbind(theta_param_yes_encode,
+                                    data.frame(iter=i,h2=h2,sigma_e=glmmkin_yes_encode$theta[1],sigma_g=glmmkin_yes_encode$theta[2])
+    )
+
+    time_run_yes_encode <- rbind(time_run_yes_encode,c(i,h2,main_cpu_time_yes_encode))
     
     
     print(
       list(
         
-        # mean_yes = colMeans(theta_param_yes_encode),
-        # mean_no = colMeans(theta_param_no_encode),
+        mean_yes = colMeans(theta_param_yes_encode),
+        mean_no = colMeans(theta_param_no_encode),
         mean_HE = colMeans(theta_param_HE_encode),
         
-        # var_yes = apply(theta_param_yes_encode,2,var),
-        # var_no = apply(theta_param_no_encode,2,var),
+        var_yes = apply(theta_param_yes_encode,2,var),
+        var_no = apply(theta_param_no_encode,2,var),
         var_HE = apply(theta_param_HE_encode,2,var),
         
-        # time_yes = colMeans(time_run_yes_encode),
-        # time_no = colMeans(time_run_no_encode),
+        time_yes = colMeans(time_run_yes_encode),
+        time_no = colMeans(time_run_no_encode),
         time_HE = colMeans(time_run_HE_encode)
         
       )
@@ -136,7 +133,7 @@ for(h2 in c(0.5)){
   
 }
 
-save.image("~/Documents/main_files/AskExplain/gcta_summaries/data/workflow//lmm_fast_accuracy_rerun.RData")
+save.image("./reproducibility/lmm_fast_accuracy_rerun.RData")
 
 
 pdf("./figures/encoded_vs_original_mixed_model.pdf",width = 8, height = 4)
@@ -144,6 +141,3 @@ par(mfcol=c(1,2))
 boxplot(data.frame(Encode = theta_param_yes_encode[,4], Original = theta_param_no_encode[,4], HE = theta_param_HE_encode[,4]),main="Heritability (h2)")
 boxplot(data.frame(Encode = time_run_yes_encode[,5], Original = time_run_no_encode[,5], HE = time_run_HE_encode[,5]), main="Runtime (seconds)")
 dev.off()
-
-
-
