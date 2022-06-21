@@ -59,6 +59,7 @@ for(h2 in c(0.5)){
     
     # Run original mixed model
     main_cpu_time_HE_encode <- system.time(glmmkin_HE_encode <- MASS::ginv(cbind(rbind(n,sum(GRM)),rbind(sum(GRM),sum(GRM%*%t(GRM)))))%*%rbind(sum(y%*%t(y)),sum(GRM%*%y%*%t(y))))
+
     
     theta_param_HE_encode <- rbind(theta_param_HE_encode,
                                    data.frame(iter=i,h2=h2,sigma_e=1-(glmmkin_HE_encode[2]),sigma_g=glmmkin_HE_encode[2])
