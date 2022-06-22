@@ -1,5 +1,5 @@
 
-source("~/Documents/main_files/AskExplain/gcta_summaries/Rscripts/projection/3_analysis/helper_functions.R")
+source("./helper_functions.R")
 # devtools::install_github("AskExplain/gcode_R@beta_test_v2022.2")
 
 library(quadprog)
@@ -17,11 +17,14 @@ f = 0.5
 
 
 
-time_run_yes_encode <- c()
-theta_param_yes_encode <- c()
+time_run_yes_100_encode <- c()
+theta_param_yes_100_encode <- c()
 
-# time_run_no_encode <- c()
-# theta_param_no_encode <- c()
+time_run_yes_300_encode <- c()
+theta_param_yes_300_encode <- c()
+
+time_run_no_encode <- c()
+theta_param_no_encode <- c()
 
 time_run_HE_encode <- c()
 theta_param_HE_encode <- c()
@@ -31,7 +34,7 @@ theta_param_HE_encode <- c()
 for(h2 in c(0.5)){
   
   # Number of permutations
-  for (i in 1:100){
+  for (i in 1:300){
     print(i)
     set.seed(i+10*h2)
     
@@ -45,13 +48,13 @@ for(h2 in c(0.5)){
     
     
     # Run original mixed model
-    # main_cpu_time_no_encode <- system.time(glmmkin_no_encode <- david_glmmkin.ai(fit0 = glm(y~1), kins = list(GRM), k = 0, verbose = F, encode = F,tol=0.01, maxiter = 30))
-    # 
-    # theta_param_no_encode <- rbind(theta_param_no_encode,
-    #                                data.frame(iter=i,h2=h2,sigma_e=glmmkin_no_encode$theta[1],sigma_g=glmmkin_no_encode$theta[2])
-    # )
-    # 
-    # time_run_no_encode <- rbind(time_run_no_encode,c(i,h2,main_cpu_time_no_encode))
+    main_cpu_time_no_encode <- system.time(glmmkin_no_encode <- david_glmmkin.ai(fit0 = glm(y~1), kins = list(GRM), k = 0, verbose = F, encode = F,tol=0.01, maxiter = 30))
+
+    theta_param_no_encode <- rbind(theta_param_no_encode,
+                                   data.frame(iter=i,h2=h2,sigma_e=glmmkin_no_encode$theta[1],sigma_g=glmmkin_no_encode$theta[2])
+    )
+
+    time_run_no_encode <- rbind(time_run_no_encode,c(i,h2,main_cpu_time_no_encode))
     
     
     
@@ -59,7 +62,6 @@ for(h2 in c(0.5)){
     
     # Run original mixed model
     main_cpu_time_HE_encode <- system.time(glmmkin_HE_encode <- MASS::ginv(cbind(rbind(n,sum(GRM)),rbind(sum(GRM),sum(GRM%*%t(GRM)))))%*%rbind(sum(y%*%t(y)),sum(GRM%*%y%*%t(y))))
-
     
     theta_param_HE_encode <- rbind(theta_param_HE_encode,
                                    data.frame(iter=i,h2=h2,sigma_e=1-(glmmkin_HE_encode[2]),sigma_g=glmmkin_HE_encode[2])
@@ -103,7 +105,7 @@ for(h2 in c(0.5)){
     )
     
     theta_param_yes_100_encode <- rbind(theta_param_yes_100_encode,
-                                        data.frame(iter=i,h2=h2,sigma_e=glmmkin_yes_encode$theta[1],sigma_g=glmmkin_yes_encode$theta[2])
+                                        data.frame(iter=i,h2=h2,sigma_e=glmmkin_yes_100_encode$theta[1],sigma_g=glmmkin_yes_100_encode$theta[2])
     )
     
     time_run_yes_100_encode <- rbind(time_run_yes_100_encode,c(i,h2,main_cpu_time_yes_100_encode))
@@ -147,10 +149,12 @@ for(h2 in c(0.5)){
     )
     
     theta_param_yes_300_encode <- rbind(theta_param_yes_300_encode,
-                                    data.frame(iter=i,h2=h2,sigma_e=glmmkin_yes_encode$theta[1],sigma_g=glmmkin_yes_encode$theta[2])
+                                    data.frame(iter=i,h2=h2,sigma_e=glmmkin_yes_300_encode$theta[1],sigma_g=glmmkin_yes_300_encode$theta[2])
     )
     
     time_run_yes_300_encode <- rbind(time_run_yes_300_encode,c(i,h2,main_cpu_time_yes_300_encode))
+    
+    
     
     
     
@@ -182,11 +186,10 @@ for(h2 in c(0.5)){
   
 }
 
-save.image("~/Documents/main_files/AskExplain/gcta_summaries/encoding_information-main/reproducibility/encode_original_mixed_model.RData")
-# save.image("~/Documents/main_files/AskExplain/gcta_summaries/data/workflow//lmm_fast_accuracy_rerun_test.RData")
+save.image("./reproducibility/encode_original_mixed_model.RData")
 
 
-pdf("./figures/encoded_vs_original_mixed_model.pdf",width = 12, height = 4)
+pdf("./figures/encoded_vs_original_mixed_model.pdf",width = 15, height = 5)
 par(mfcol=c(1,2))
 boxplot(data.frame(Encode_small = theta_param_yes_100_encode[,4], Encode_large = theta_param_yes_300_encode[,4], Original = theta_param_no_encode[,4], HE = theta_param_HE_encode[,4]),main="Heritability (h2)",ylim=c(0,1))
 boxplot(data.frame(Encode_small = time_run_yes_100_encode[,5], Encode_large = time_run_yes_300_encode[,5], Original = time_run_no_encode[,5], HE = time_run_HE_encode[,5]),main="Runtime (seconds)")
