@@ -8,6 +8,6 @@ This is for approximately 100 permutation runs of a simulation with 1000 samples
 ![alt text](https://raw.githubusercontent.com/AskExplain/encoding_information/alpha_test_v2022.2/mixed_model/figures/encoded_vs_original_mixed_model.png)
 
 
-Given information is being encoded, it is expected for there to be information loss leading to higher variability compared to the standard linear mixed model. However, the encoding has a lower sampling variability compared to AI-REML, and HE-regression, while running 5x faster on average than AI-REML. HE regression runs the fastest (and is expected to according to the literature).
+Given information is being encoded, it is expected for there to be information loss leading to higher variability compared to the standard linear mixed model. However, the encoding has a lower sampling variability compared to AI-REML, and HE-regression, while running 4x faster on average than AI-REML. HE regression runs the fastest (and is expected to according to the literature).
 
 
