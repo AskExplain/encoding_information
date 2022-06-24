@@ -1,4 +1,4 @@
-# Encoding large information structures in linear algebra
+# Encoding large information structures in linear algebra and statistics
 
 An experiment is shown with a linear mixed model. In genetics, a Genetic Relatedness Matrix is used as the covariance structure for the random effects. With encoding of the sample information, the sample structure of this covariance matrix can be reduced from (N samples) to (M samples) where (N > M).
 
