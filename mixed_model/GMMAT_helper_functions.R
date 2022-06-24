@@ -1,3 +1,21 @@
+scaleW<- function(W, p = NULL){
+  M<- ncol(W)
+  N<- nrow(W)
+  if (is.null(p)){
+    p<- apply(W, 2, mean)/2
+  }
+  
+  genotype_scaled<- NULL
+  for (j in 1:M){
+    p_j<- p[j]
+    W_j<- W[,j]
+    if (p_j == 0) W_jscaled<- W_j
+    else W_jscaled<- (W_j-2*p_j)/sqrt(2*p_j*(1-p_j))
+    genotype_scaled<- cbind(genotype_scaled, W_jscaled)
+  }
+  
+  return(genotype_scaled)
+}
 
 
 
@@ -79,7 +97,7 @@ internal_R_fitglmm_ai_dense <- function (Y, X, q, kins, ng, group.idx, W, tau, f
 }
 
 
-david_glmmkin.ai <- function (fit0, kins, k, tau = rep(0, length(kins) + length(group.idx)), fixtau = rep(0, length(kins) + length(group.idx)), fixrho = NULL, maxiter = 500, tol = 1e-05, verbose = FALSE, encode = FALSE, sample_encode = NULL) {
+david_glmmkin.ai <- function (fit0, kins, k, tau = rep(0, length(kins) + length(group.idx)), fixtau = rep(0, length(kins) + length(group.idx)), fixrho = NULL, maxiter = 500, tol = 1e-10, verbose = FALSE, encode = FALSE, sample_encode = NULL) {
   
   
   q <- 1
@@ -191,7 +209,6 @@ david_glmmkin.ai <- function (fit0, kins, k, tau = rep(0, length(kins) + length(
                                                                    Y)))
     tau0 <- tau
     
-    h2 <- 0.5
     for (i in 1:q2) {
       if (idxtau[i] <= ng)
         tau[idxtau[i]] <- max(0, tau0[idxtau[i]] + tau0[idxtau[i]]^2 *
@@ -228,7 +245,7 @@ david_glmmkin.ai <- function (fit0, kins, k, tau = rep(0, length(kins) + length(
   sample_encode <- if(is.null(sample_encode)){diag(n)}else{sample_encode}
   
   if (encode){
-    a <- MASS::ginv(sample_encode%*%t(sample_encode))
+    a <- MASS::ginv((sample_encode%*%t(sample_encode)))
   }
   
   
@@ -241,67 +258,11 @@ david_glmmkin.ai <- function (fit0, kins, k, tau = rep(0, length(kins) + length(
     
     fit <- internal_R_fitglmm_ai_dense(Y = Y, X = X, q = q, kins = kins, ng = ng, group.idx = group.idx, W = sqrtW^2, tau = tau, fixtau = fixtau, k=k, encode = encode, sample_encode = sample_encode, a = a)
     
-    if (q2 > 0) {
-      Dtau <- as.numeric(fit$Dtau)
-      tau[idxtau] <- tau0[idxtau] + Dtau
-      if (is.null(covariance.idx)) {
-        tau[tau < tol & tau0 < tol] <- 0
-        while (any(tau < 0)) {
-          Dtau <- Dtau/2
-          tau[idxtau] <- tau0[idxtau] + Dtau
-          tau[tau < tol & tau0 < tol] <- 0
-        }
-        tau[tau < tol] <- 0
-      }
-      else {
-        fixrho.idx0 <- apply(covariance.idx, 1, function(x) abs(tau0[x[1]]) >
-                               (1 - 1.01 * tol) * sqrt(tau0[x[2]] * tau0[x[3]]))
-        tau[-covariance.idx[, 1]][tau[-covariance.idx[,
-                                                      1]] < tol & tau0[-covariance.idx[, 1]] < tol] <- 0
-        if (any(fixrho != 0)) {
-          idxrho <- which(fixrho != 0)
-          tau[covariance.idx[idxrho, 1]] <- suppressWarnings(fixrho[idxrho] *
-                                                               sqrt(tau[covariance.idx[idxrho, 2]] * tau[covariance.idx[idxrho,
-                                                                                                                        3]]))
-        }
-        fixrho.idx <- suppressWarnings(apply(covariance.idx,
-                                             1, function(x) abs(tau[x[1]]) > (1 - 1.01 *
-                                                                                tol) * sqrt(tau[x[2]] * tau[x[3]])))
-        tau[covariance.idx[fixrho.idx & fixrho.idx0,
-                           1]] <- sign(tau[covariance.idx[fixrho.idx &
-                                                            fixrho.idx0, 1]]) * sqrt(tau[covariance.idx[fixrho.idx &
-                                                                                                          fixrho.idx0, 2]] * tau[covariance.idx[fixrho.idx &
-                                                                                                                                                  fixrho.idx0, 3]])
-        while (any(tau[-covariance.idx[, 1]] < 0) ||
-               any(apply(covariance.idx, 1, function(x) abs(tau[x[1]]) >
-                         sqrt(tau[x[2]] * tau[x[3]])))) {
-          Dtau <- Dtau/2
-          tau[idxtau] <- tau0[idxtau] + Dtau
-          tau[-covariance.idx[, 1]][tau[-covariance.idx[,
-                                                        1]] < tol & tau0[-covariance.idx[, 1]] <
-                                      tol] <- 0
-          if (any(fixrho != 0)) {
-            idxrho <- which(fixrho != 0)
-            tau[covariance.idx[idxrho, 1]] <- suppressWarnings(fixrho[idxrho] *
-                                                                 sqrt(tau[covariance.idx[idxrho, 2]] *
-                                                                        tau[covariance.idx[idxrho, 3]]))
-          }
-          fixrho.idx <- suppressWarnings(apply(covariance.idx,
-                                               1, function(x) abs(tau[x[1]]) > (1 - 1.01 *
-                                                                                  tol) * sqrt(tau[x[2]] * tau[x[3]])))
-          tau[covariance.idx[fixrho.idx & fixrho.idx0,
-                             1]] <- sign(tau[covariance.idx[fixrho.idx &
-                                                              fixrho.idx0, 1]]) * sqrt(tau[covariance.idx[fixrho.idx &
-                                                                                                            fixrho.idx0, 2]] * tau[covariance.idx[fixrho.idx &
-                                                                                                                                                    fixrho.idx0, 3]])
-        }
-        tau[-covariance.idx[, 1]][tau[-covariance.idx[,
-                                                      1]] < tol] <- 0
-        tau[covariance.idx[fixrho.idx, 1]] <- sign(tau[covariance.idx[fixrho.idx,
-                                                                      1]]) * sqrt(tau[covariance.idx[fixrho.idx,
-                                                                                                     2]] * tau[covariance.idx[fixrho.idx, 3]])
-      }
-    }
+    
+    Dtau <- as.numeric(fit$Dtau)
+    tau <- tau0 + Dtau
+    tau[2] <- 1 - tau[1]
+    
     cov <- as.matrix(fit$cov)
     alpha <- as.numeric(fit$alpha)
     eta <- if(encode){as.numeric(t(sample_encode)%*%fit$eta) + offset}else{(fit$eta) + offset}
@@ -314,7 +275,7 @@ david_glmmkin.ai <- function (fit0, kins, k, tau = rep(0, length(kins) + length(
     mu <- family$linkinv(eta)
     mu.eta <- family$mu.eta(eta)
     Y <- eta - offset + (y - mu)/mu.eta
-    sqrtW <- mu.eta/sqrt(1/as.vector(weights(fit0)[1:dim(sample_encode)[1]])*family$variance(mu))
+    # sqrtW <- mu.eta/sqrt(1/as.vector(weights(fit0)[1:dim(sample_encode)[1]])*family$variance(mu))
     if (2 * max(abs(alpha - alpha0)/(abs(alpha) + abs(alpha0) +
                                      tol), abs(tau - tau0)/(abs(tau) + abs(tau0) + tol)) <
         tol)
